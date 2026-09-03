@@ -187,3 +187,14 @@
     .cy-chat__form { flex-direction: column; align-items: stretch; }
     .cy-chat__form .cy-btn { width: 100%; justify-content: center; }
 }
+
+/* ---------------------------------------------------------------------
+ *  CANLI FİLTRE – "UYGULA" DÜĞMESİ
+ * ---------------------------------------------------------------------
+ *  Kullanıcılar sayfasındaki filtreler, users.js yüklendiğinde
+ *  kendiliğinden çalışır; o durumda "Uygula" düğmesi işlevsizdir ve
+ *  gizlenir. Sınıfı JavaScript ekler — yani JS kapalıysa düğme
+ *  yerinde kalır ve form normal şekilde gönderilir; hiçbir işlev
+ *  kaybolmaz.
+ * ------------------------------------------------------------------ */
+form.cy-toolbar.is-live button[type="submit"] { display: none; }

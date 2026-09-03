@@ -16,7 +16,7 @@
 
 **🇹🇷 Türkçe** · [🇬🇧 English](README.en.md)
 
-[**▶ Canlı Demo**](https://cilginyazilim.com/kutuphane/uygulama/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet-main/) · [Kaynak Kütüphanesi](https://cilginyazilim.com/kutuphane/php-ai-integration) · [cilginyazilim.com](https://cilginyazilim.com)
+[**▶ Canlı Demo**](https://cilginyazilim.com/kutuphane/uygulama/ai-integration-system/) · [Kaynak Kütüphanesi](https://cilginyazilim.com/kutuphane/php-ai-integration) · [cilginyazilim.com](https://cilginyazilim.com)
 
 </div>
 
@@ -28,13 +28,13 @@
 
 **Kurulum yok, kayıt yok, indirme yok — tarayıcınızdan 3 saniyede deneyin.**
 
-<a href="https://cilginyazilim.com/kutuphane/uygulama/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet-main/"><img src="https://img.shields.io/badge/CANLI_DEMOYU_A%C3%87-0b5cb5?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=061321" alt="Canlı Demoyu Aç" height="42"></a>
+<a href="https://cilginyazilim.com/kutuphane/uygulama/ai-integration-system/"><img src="https://img.shields.io/badge/CANLI_DEMOYU_A%C3%87-0b5cb5?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=061321" alt="Canlı Demoyu Aç" height="42"></a>
 <a href="https://cilginyazilim.com/kutuphane/php-ai-integration"><img src="https://img.shields.io/badge/KAYNAK_KODU_%C4%B0NCELE-0ea5e9?style=for-the-badge&logo=readthedocs&logoColor=white&labelColor=061321" alt="Kaynak Kodu İncele" height="42"></a>
-<a href="https://github.com/CilginYazilim/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet/archive/refs/heads/main.zip"><img src="https://img.shields.io/badge/ZIP_%C4%B0ND%C4%B0R-16a34a?style=for-the-badge&logo=github&logoColor=white&labelColor=061321" alt="ZIP İndir" height="42"></a>
+<a href="https://github.com/CilginYazilim/ai-integration-system/archive/refs/heads/main.zip"><img src="https://img.shields.io/badge/ZIP_%C4%B0ND%C4%B0R-16a34a?style=for-the-badge&logo=github&logoColor=white&labelColor=061321" alt="ZIP İndir" height="42"></a>
 
 <br><br>
 
-<a href="https://cilginyazilim.com/kutuphane/uygulama/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet-main/" title="Canlı demoyu açmak için tıklayın">
+<a href="https://cilginyazilim.com/kutuphane/uygulama/ai-integration-system/" title="Canlı demoyu açmak için tıklayın">
   <img src="docs/screenshots/04-sohbet-detay.png" alt="Yapay zekâ entegrasyonu canlı demo önizlemesi" width="860">
 </a>
 
@@ -134,21 +134,41 @@ Bu proje, **[Çılgın Yazılım Kütüphanesi](https://cilginyazilim.com/kutuph
 
 ## Ekran Görüntüleri
 
-| Giriş | Kontrol Paneli |
-|---|---|
-| <img src="docs/screenshots/01-giris.png" width="420" alt="Giriş ekranı"> | <img src="docs/screenshots/02-kontrol-paneli.png" width="420" alt="Kontrol paneli"> |
+### Sohbetler
 
-| Sohbetler | Sohbet Detayı |
-|---|---|
-| <img src="docs/screenshots/03-sohbetler.png" width="420" alt="Sohbet listesi"> | <img src="docs/screenshots/04-sohbet-detay.png" width="420" alt="Sohbet detayı"> |
+Dört sayaç jeton muhasebesinin özetidir: sohbet · mesaj · toplam jeton · **tahmini maliyet**. Maliyet sabit bir sayı değil, model fiyat tablosundan hesaplanır (`giriş/1M × 5$ + çıkış/1M × 25$`). Her sohbet satırı kendi jeton ve maliyet rozetini taşır.
 
-<div align="center">
-<img src="docs/screenshots/05-koyu-tema.png" width="720" alt="Koyu tema">
-<br><sub>Koyu tema</sub>
-<br><br>
-<img src="docs/screenshots/06-mobil.png" width="300" alt="Mobil görünüm">
-<br><sub>390px genişlikte mobil görünüm</sub>
-</div>
+![Sohbet listesi: sohbet, mesaj, jeton ve tahmini maliyet sayaçları](docs/screenshots/03-sohbetler.png)
+
+### Sohbet detayı
+
+Kullanıcı mesajları sağda, yanıtlar solda; kod örnekleri girintisi korunarak basılır. Her yanıtın altındaki satır o mesajın giriş/çıkış jetonunu ve maliyetini verir. Giriş jetonlarının mesaj mesaj artışı (412 → 890 → 1.503) burada gözle görülür: model durum tutmaz, her istekte sohbetin **tamamı** yeniden gönderilir ve yeniden ücretlendirilir. Modelin düşünme özeti `<details>` ile açılır — JavaScript gerekmez.
+
+![Sohbet detayı: mesaj balonları, mesaj başına jeton ve maliyet satırı, açılabilir düşünme özeti](docs/screenshots/04-sohbet-detay.png)
+
+### Kontrol paneli
+
+**API Kurulumu** kartı anahtarın tanımlı olup olmadığını, modeli, efor seviyesini ve uç noktayı tek bakışta verir. Kartın altındaki not, isteğin **sunucudan** atıldığını söyler: anahtar tarayıcıya asla gönderilmez.
+
+![Kontrol paneli: sayaç şeridi ve API kurulum kartı](docs/screenshots/02-kontrol-paneli.png)
+
+### Giriş ekranı
+
+Demo hesapları tek tıkla doldurulur. Giriş denemeleri hız sınırına tabidir; art arda başarısız denemeden sonra hesap geçici olarak kilitlenir.
+
+![Giriş ekranı: demo hesapları tek tıkla doldurulur](docs/screenshots/01-giris.png)
+
+### Koyu tema
+
+Tema tarayıcıda değil **kullanıcı hesabında** saklanır; başka bir cihazdan girdiğinizde de aynı gelir. Sohbet balonlarının zemin ve metin renkleri koyu temada ayrıca ölçülüdür.
+
+![Koyu tema görünümü](docs/screenshots/05-koyu-tema.png)
+
+### Mobil görünüm
+
+390px genişlikte balonlar genişler, sayaçlar alt alta dizilir ve alt navigasyon devreye girer. Sayfa gövdesinde yatay kaydırma yoktur.
+
+<img src="docs/screenshots/06-mobil.png" alt="390px genişlikte mobil görünüm" width="360">
 
 ---
 
@@ -334,6 +354,7 @@ Uygulama kodunda "önce mesajları sil, sonra sohbeti sil" yazılsaydı, o iki a
 - CSP (`script-src 'self'`), `X-Frame-Options: DENY`
 - Açık / koyu tema, hesaba kayıtlı
 - Mobilde alt navigasyon, yatay kaydırma yok
+- Kullanıcılar sayfasında canlı filtre (JS kapalıysa da çalışır)
 
 </td></tr>
 </table>
@@ -427,8 +448,8 @@ Tanımlı olmayan bir model adı için `0.0` döner — yanlış bir rakam göst
 ### Adımlar
 
 ```bash
-git clone https://github.com/CilginYazilim/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet.git
-cd PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet
+git clone https://github.com/CilginYazilim/ai-integration-system.git
+cd ai-integration-system
 
 mysql -u root -p < database.sql
 cp .env.example .env        # Windows: copy .env.example .env
@@ -506,7 +527,7 @@ ai-integration-system/
 │
 ├── assets/
 │   ├── css/  cilginyazilim.css (marka) · admin.css · feature.css
-│   └── js/   chat.js · app.js · login.js
+│   └── js/   chat.js · app.js · login.js · users.js
 │
 ├── config/config.php
 ├── routes/web.php
@@ -658,7 +679,7 @@ Yaygın kalıp: son N mesajı ham gönderin, daha eskileri tek bir özet mesajı
 
 ## Katkı
 
-Hata bildirimi ve öneriler için [issue açabilirsiniz](https://github.com/CilginYazilim/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet/issues).
+Hata bildirimi ve öneriler için [issue açabilirsiniz](https://github.com/CilginYazilim/ai-integration-system/issues).
 
 ## Lisans
 

@@ -16,7 +16,7 @@
 
 [🇹🇷 Türkçe](README.md) · **🇬🇧 English**
 
-[**▶ Live Demo**](https://cilginyazilim.com/kutuphane/uygulama/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet-main/) · [Code Library](https://cilginyazilim.com/kutuphane/php-ai-integration) · [cilginyazilim.com](https://cilginyazilim.com)
+[**▶ Live Demo**](https://cilginyazilim.com/kutuphane/uygulama/ai-integration-system/) · [Code Library](https://cilginyazilim.com/kutuphane/php-ai-integration) · [cilginyazilim.com](https://cilginyazilim.com)
 
 </div>
 
@@ -28,13 +28,13 @@
 
 **No setup, no sign-up, no download — try it in your browser in 3 seconds.**
 
-<a href="https://cilginyazilim.com/kutuphane/uygulama/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet-main/"><img src="https://img.shields.io/badge/OPEN_LIVE_DEMO-0b5cb5?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=061321" alt="Open Live Demo" height="42"></a>
+<a href="https://cilginyazilim.com/kutuphane/uygulama/ai-integration-system/"><img src="https://img.shields.io/badge/OPEN_LIVE_DEMO-0b5cb5?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=061321" alt="Open Live Demo" height="42"></a>
 <a href="https://cilginyazilim.com/kutuphane/php-ai-integration"><img src="https://img.shields.io/badge/BROWSE_SOURCE-0ea5e9?style=for-the-badge&logo=readthedocs&logoColor=white&labelColor=061321" alt="Browse Source" height="42"></a>
-<a href="https://github.com/CilginYazilim/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet/archive/refs/heads/main.zip"><img src="https://img.shields.io/badge/DOWNLOAD_ZIP-16a34a?style=for-the-badge&logo=github&logoColor=white&labelColor=061321" alt="Download ZIP" height="42"></a>
+<a href="https://github.com/CilginYazilim/ai-integration-system/archive/refs/heads/main.zip"><img src="https://img.shields.io/badge/DOWNLOAD_ZIP-16a34a?style=for-the-badge&logo=github&logoColor=white&labelColor=061321" alt="Download ZIP" height="42"></a>
 
 <br><br>
 
-<a href="https://cilginyazilim.com/kutuphane/uygulama/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet-main/" title="Click to open the live demo">
+<a href="https://cilginyazilim.com/kutuphane/uygulama/ai-integration-system/" title="Click to open the live demo">
   <img src="docs/screenshots/04-sohbet-detay.png" alt="AI integration live demo preview" width="860">
 </a>
 
@@ -134,21 +134,41 @@ This project is one of the documented, production-ready examples published in th
 
 ## Screenshots
 
-| Login | Dashboard |
-|---|---|
-| <img src="docs/screenshots/01-giris.png" width="420" alt="Login screen"> | <img src="docs/screenshots/02-kontrol-paneli.png" width="420" alt="Dashboard"> |
+### Conversations
 
-| Conversations | Conversation Detail |
-|---|---|
-| <img src="docs/screenshots/03-sohbetler.png" width="420" alt="Conversation list"> | <img src="docs/screenshots/04-sohbet-detay.png" width="420" alt="Conversation detail"> |
+The four counters are the token accounting in miniature: conversations · messages · total tokens · **estimated cost**. Cost is not a fixed number; it is computed from the model price table (`input/1M × $5 + output/1M × $25`). Every row carries its own token and cost badge.
 
-<div align="center">
-<img src="docs/screenshots/05-koyu-tema.png" width="720" alt="Dark theme">
-<br><sub>Dark theme</sub>
-<br><br>
-<img src="docs/screenshots/06-mobil.png" width="300" alt="Mobile view">
-<br><sub>Mobile view at 390px</sub>
-</div>
+![Conversation list: conversation, message, token and estimated cost counters](docs/screenshots/03-sohbetler.png)
+
+### Conversation detail
+
+User messages on the right, replies on the left; code samples keep their indentation. The line under each reply gives that message's input/output tokens and cost. The message-by-message growth of input tokens (412 → 890 → 1,503) is visible here: the model is stateless, so **the entire** conversation is resent — and recharged — on every request. The thinking summary opens in a `<details>` element, no JavaScript required.
+
+![Conversation detail: message bubbles, per-message token and cost line, expandable thinking summary](docs/screenshots/04-sohbet-detay.png)
+
+### Dashboard
+
+The **API setup** card shows at a glance whether the key is defined, plus the model, effort level and endpoint. The note below it says the request is made **from the server**: the key is never sent to the browser.
+
+![Dashboard: counter strip and API setup card](docs/screenshots/02-kontrol-paneli.png)
+
+### Login screen
+
+Demo accounts fill in with one click. Login attempts are rate limited; after repeated failures the account is temporarily locked.
+
+![Login screen: demo accounts fill in with one click](docs/screenshots/01-giris.png)
+
+### Dark theme
+
+The theme is stored in the **user account**, not the browser, so it follows you to another device. Chat bubble background and text colors are measured separately for dark mode.
+
+![Dark theme](docs/screenshots/05-koyu-tema.png)
+
+### Mobile view
+
+At 390px the bubbles widen, the counters stack and bottom navigation takes over. The page body never scrolls horizontally.
+
+<img src="docs/screenshots/06-mobil.png" alt="Mobile view at 390px" width="360">
 
 ---
 
@@ -335,6 +355,7 @@ Had the application code said "delete the messages first, then the conversation"
 - CSP (`script-src 'self'`), `X-Frame-Options: DENY`
 - Light / dark theme, stored on the account
 - Bottom navigation on mobile, no horizontal scrolling
+- Live filtering on the users page (works without JS too)
 
 </td></tr>
 </table>
@@ -428,8 +449,8 @@ An unknown model name returns `0.0` — better to show nothing than a wrong figu
 ### Steps
 
 ```bash
-git clone https://github.com/CilginYazilim/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet.git
-cd PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet
+git clone https://github.com/CilginYazilim/ai-integration-system.git
+cd ai-integration-system
 
 mysql -u root -p < database.sql
 cp .env.example .env        # Windows: copy .env.example .env
@@ -507,7 +528,7 @@ ai-integration-system/
 │
 ├── assets/
 │   ├── css/  cilginyazilim.css (brand) · admin.css · feature.css
-│   └── js/   chat.js · app.js · login.js
+│   └── js/   chat.js · app.js · login.js · users.js
 │
 ├── config/config.php
 ├── routes/web.php
@@ -659,7 +680,7 @@ A common pattern: send the last N messages verbatim and collapse older ones into
 
 ## Contributing
 
-Open an [issue](https://github.com/CilginYazilim/PHP-MySQL-Yapay-Zeka-Entegrasyonu-Claude-API-Jeton-Maliyet/issues) for bug reports and suggestions.
+Open an [issue](https://github.com/CilginYazilim/ai-integration-system/issues) for bug reports and suggestions.
 
 ## License
 

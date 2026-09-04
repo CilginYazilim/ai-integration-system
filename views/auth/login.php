@@ -28,11 +28,11 @@ $demoAccounts = [
         </div>
 
         <div class="cy-auth__pitch">
-            <h2>Claude API ile sohbet ve araç kullanımı</h2>
-            <p>Anthropic Messages API'sine kütüphanesiz bağlanan; sohbet geçmişini saklayan, jeton kullanımını ve maliyeti ölçen, hız sınırına karşı yeniden deneyen örnek PHP entegrasyonu.</p>
+            <h2>Yapay zekâ entegrasyonu — ücretsiz bir API anahtarıyla</h2>
+            <p>Gemini, Groq ve Claude'a <strong>aynı kodla</strong> kütüphanesiz bağlanan; sohbet geçmişini saklayan, jeton kullanımını ve maliyeti ölçen, hız sınırına karşı yeniden deneyen örnek PHP entegrasyonu. Varsayılan sağlayıcının ücretsiz katmanı vardır; denemek için kredi kartı gerekmez.</p>
 
             <div class="cy-auth__features">
-                <span class="cy-auth__feature"><?= icon('activity', 'cy-icon cy-icon--sm') ?> Claude Messages API (cURL, kütüphanesiz)</span>
+                <span class="cy-auth__feature"><?= icon('activity', 'cy-icon cy-icon--sm') ?> Gemini · Groq · Claude (cURL, kütüphanesiz)</span>
                 <span class="cy-auth__feature"><?= icon('mail', 'cy-icon cy-icon--sm') ?> Sohbet geçmişi ve bağlam yönetimi</span>
                 <span class="cy-auth__feature"><?= icon('alert', 'cy-icon cy-icon--sm') ?> 429/529 için üstel geri çekilmeli yeniden deneme</span>
                 <span class="cy-auth__feature"><?= icon('shield', 'cy-icon cy-icon--sm') ?> API anahtarı .env'de, istemciye asla gitmez</span>

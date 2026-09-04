@@ -2,15 +2,16 @@
 
 <img src="assets/images/logo.png" alt="Çılgın Yazılım" width="90">
 
-# Yapay Zekâ Entegrasyonu (Claude API)
+# Yapay Zekâ Entegrasyonu (Gemini · Groq · Claude)
 
-### PHP 8 · PDO · MySQL · Claude Messages API · Jeton ve Maliyet Takibi · Düşünme Özeti · Çılgın Yazılım Tasarım Kalıbı
+### PHP 8 · PDO · MySQL · Ücretsiz API Anahtarıyla Çalışır · Jeton ve Maliyet Takibi · Değiştirilebilir Sağlayıcı · Çılgın Yazılım Tasarım Kalıbı
 
-**Anahtar sunucuda kalır, her yanıtın maliyeti hesaplanır, sohbet geçmişi veritabanında durur.**
+**Ücretsiz bir anahtarla çalışır. Anahtar sunucuda kalır, her yanıtın maliyeti hesaplanır, sohbet geçmişi veritabanında durur.**
 
 [![PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-5.7%2B-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://mysql.com)
-[![Claude](https://img.shields.io/badge/Claude-Messages_API-d97757?style=flat-square&logo=anthropic&logoColor=white)](https://docs.anthropic.com)
+[![Gemini](https://img.shields.io/badge/Gemini-%C3%BCcretsiz_katman-1a73e8?style=flat-square&logo=googlegemini&logoColor=white)](https://aistudio.google.com/apikey)
+[![Sağlayıcı](https://img.shields.io/badge/Sa%C4%9Flay%C4%B1c%C4%B1-de%C4%9Fi%C5%9Ftirilebilir-16a34a?style=flat-square)](#sağlayıcı-seçmek)
 [![Composer](https://img.shields.io/badge/Composer-gerekmiyor-16a34a?style=flat-square)](#kurulum)
 [![License](https://img.shields.io/badge/Lisans-MIT-16a34a?style=flat-square)](LICENSE)
 
@@ -94,14 +95,17 @@ Bu proje dördünü de ele alan bir entegrasyon katmanı kuruyor. Anahtar `.env`
 
 Modelin "düşünme" özeti de saklanır ve arayüzde istenirse açılır — yanıtın nasıl kurulduğunu görmek, çıktıyı değerlendirmenin en pratik yoludur.
 
-`ClaudeClient` sınıfı hiçbir SDK kullanmaz; istek `cURL` ile atılır, yanıt elle ayrıştırılır.
+Sağlayıcı sınıfları hiçbir SDK kullanmaz; istek `cURL` ile atılır, yanıt elle ayrıştırılır.
+
+**Ve en önemlisi: denemek için para gerekmiyor.** Varsayılan sağlayıcı Google Gemini'dir ve ücretsiz katmanı vardır — [aistudio.google.com/apikey](https://aistudio.google.com/apikey) adresinden kredi kartı vermeden, birkaç saniyede anahtar alırsınız.
 
 **Kimler için uygun?**
 
 - Projesine yapay zekâ özelliği ekleyecek, ama maliyeti kontrol altında tutmak isteyenler
 - API anahtarını nereye koyacağını soran herkes
 - Jeton muhasebesinin nasıl yapıldığını öğrenmek isteyenler
-- SDK kurmadan, saf PHP ile Messages API'sine bağlanmak isteyenler
+- SDK kurmadan, saf PHP ile bir yapay zekâ API'sine bağlanmak isteyenler
+- Sağlayıcıya kilitlenmeden, tek ayarla Gemini/Groq/Claude arasında geçiş yapmak isteyenler
 - Bootstrap 5 üzerine kurulu, tekrar kullanılabilir bir panel kalıbı arayanlar
 
 Bu proje, **[Çılgın Yazılım Kütüphanesi](https://cilginyazilim.com/kutuphane)** altında yayınlanan açıklamalı, üretime hazır örneklerden biridir.
@@ -121,6 +125,7 @@ Bu proje, **[Çılgın Yazılım Kütüphanesi](https://cilginyazilim.com/kutuph
 - [Güvenlik: Neyi, Nasıl Kapattık?](#güvenlik-neyi-nasıl-kapattık)
 - [Kurulum](#kurulum)
 - [Yapılandırma](#yapılandırma)
+- [Sağlayıcı seçmek](#sağlayıcı-seçmek)
 - [Dosya Yapısı](#dosya-yapısı)
 - [Veritabanı Şeması](#veritabanı-şeması)
 - [SSS](#sss)
@@ -175,7 +180,7 @@ Tema tarayıcıda değil **kullanıcı hesabında** saklanır; başka bir cihazd
 ## Bir isteğin yolculuğu
 
 ```
- TARAYICI                          SUNUCU (PHP)                    ANTHROPIC API
+ TARAYICI                          SUNUCU (PHP)                    SAĞLAYICI API
  ────────                          ────────────                    ─────────────
  Kullanıcı mesajı yazar
     │  POST /api/chat/send
@@ -183,15 +188,16 @@ Tema tarayıcıda değil **kullanıcı hesabında** saklanır; başka bir cihazd
     ▼
                           ai_messages'a "user" satırı
                                    │
-                                   │  ClaudeClient::send()
+                                   │  Ai::fromEnv()->send()
+                                   │  (gemini · groq · claude …)
                                    │
                                    │  1) SOHBETİN TAMAMINI topla
                                    │     (model durum tutmaz)
                                    │
-                                   │  2) x-api-key: <ANAHTAR>   ◄── ANAHTAR
-                                   │     anthropic-version: ...      BURADA KALIR
-                                   │                                 tarayıcıya
-                                   │  3) POST /v1/messages ──────────► GİTMEZ
+                                   │  2) x-goog-api-key: <ANAHTAR> ◄─ ANAHTAR
+                                   │     (Claude'da x-api-key)        BURADA KALIR
+                                   │                                  tarayıcıya
+                                   │  3) POST …:generateContent ──────► GİTMEZ
                                    │                                     │
                                    │                                     ▼
                                    │  ◄────────────────────── 200 / 429 / 529 / 4xx
@@ -231,7 +237,7 @@ Tema tarayıcıda değil **kullanıcı hesabında** saklanır; başka bir cihazd
 Bu projede istek **her zaman sunucudan** atılır:
 
 ```
-Tarayıcı → (kendi sunucunuz) → Anthropic API
+Tarayıcı → (kendi sunucunuz) → Sağlayıcı API
 ```
 
 Anahtar `.env` dosyasındadır, `.gitignore` içindedir ve PHP dışına hiç çıkmaz. Tarayıcı yalnızca kendi sunucunuzla konuşur — CSRF korumalı, oturum gerektiren bir uç nokta üzerinden.
@@ -363,7 +369,17 @@ Uygulama kodunda "önce mesajları sil, sonra sohbeti sil" yazılsaydı, o iki a
 
 ## Maliyet nasıl hesaplanıyor?
 
-Fiyatlar milyon jeton başınadır ve `ClaudeClient::PRICING` tablosundadır:
+Fiyatlar milyon jeton başınadır ve her sağlayıcının kendi `PRICING` tablosundadır. **Ücretsiz katmanda gerçek maliyetiniz sıfırdır**; rakam yine de gösterilir, çünkü asıl soru "bugün ne ödedim?" değil, "bu uygulama yayına çıkarsa ne öderim?" sorusudur.
+
+`GeminiProvider::PRICING` — ücretli katman:
+
+| Model | Giriş | Çıkış |
+|---|---|---|
+| `gemini-2.5-flash-lite` | 0,10 $ | 0,40 $ |
+| `gemini-2.5-flash` | 0,30 $ | 2,50 $ |
+| `gemini-3.8-flash` | 0,75 $ | 3,75 $ |
+
+`ClaudeProvider::PRICING`:
 
 | Model | Giriş (1M jeton) | Çıkış (1M jeton) |
 |---|---|---|
@@ -401,7 +417,7 @@ Tanımlı olmayan bir model adı için `0.0` döner — yanlış bir rakam göst
 
 ## Hata yönetimi
 
-`ClaudeClient::send()` her durumda **anlaşılır** bir sonuç döndürür; ham bir istisna arayüze sızmaz.
+Sağlayıcının `send()` metodu her durumda **anlaşılır** bir sonuç döndürür; ham bir istisna arayüze sızmaz.
 
 | Durum | Kullanıcı ne görür |
 |---|---|
@@ -443,7 +459,7 @@ Tanımlı olmayan bir model adı için `0.0` döner — yanlış bir rakam göst
 | PHP | 8.0 veya üzeri · **`curl` eklentisi zorunlu** |
 | MySQL / MariaDB | 5.7+ / 10.3+ |
 | Web sunucusu | Apache (`mod_rewrite`) veya Nginx |
-| Anthropic API anahtarı | [console.anthropic.com](https://console.anthropic.com) |
+| Bir API anahtarı | **Ücretsiz:** [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (Gemini) veya [console.groq.com/keys](https://console.groq.com/keys) (Groq) |
 
 ### Adımlar
 
@@ -455,11 +471,16 @@ mysql -u root -p < database.sql
 cp .env.example .env        # Windows: copy .env.example .env
 ```
 
-`.env` dosyasına anahtarınızı ekleyin:
+`.env` dosyasına **ücretsiz** anahtarınızı ekleyin:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...
+AI_PROVIDER=gemini
+GEMINI_API_KEY=...
 ```
+
+> Anahtarı [aistudio.google.com/apikey](https://aistudio.google.com/apikey) adresinden
+> alırsınız: Google hesabıyla girin, **Create API key**, kopyalayın. Kredi kartı
+> istenmez, faturalandırma açmanız gerekmez.
 
 Açın: `http://localhost/ai-integration-system/` · Giriş: `admin@cilginyazilim.com` / `Admin1234`
 
@@ -480,18 +501,42 @@ DB_NAME=cy_ai
 DB_USER=root
 DB_PASS=
 
-# --- ANTHROPIC (CLAUDE) API ---
-ANTHROPIC_API_KEY=
-AI_MODEL=claude-opus-5
-AI_MAX_TOKENS=16000
-AI_EFFORT=medium
+# --- YAPAY ZEKÂ SAĞLAYICISI ---
+AI_PROVIDER=gemini
+GEMINI_API_KEY=
+AI_MODEL=gemini-2.5-flash
+AI_MAX_TOKENS=4096
 ```
 
 | Ayar | Ne yapar |
 |---|---|
-| `AI_MODEL` | Kullanılacak model. Maliyet farkı büyüktür: `claude-haiku-4-5` çıkışta `claude-opus-5`'in beşte biri fiyattadır |
+| `AI_PROVIDER` | `gemini` · `groq` · `openai-compatible` · `claude`. Varsayılan `gemini` |
+| `AI_MODEL` | Kullanılacak model. Boş bırakırsanız sağlayıcının varsayılanı kullanılır |
 | `AI_MAX_TOKENS` | Yanıtın en fazla kaç jeton olacağı. **Düşük tutmayın**: sınıra çarpan yanıt cümlenin ortasında kesilir ve baştan sormanız gerekir |
-| `AI_EFFORT` | Düşünme derinliği. Yükseltmek daha iyi yanıt verir ama hem süreyi hem maliyeti artırır |
+| `AI_BASE_URL` | Yalnızca `openai-compatible` için: hangi servise bağlanılacağı |
+| `AI_THINKING` | Gemini'de düşünme özeti istensin mi (varsayılan kapalı) |
+| `AI_EFFORT` | Claude'da düşünme derinliği. Yükseltmek daha iyi yanıt verir ama hem süreyi hem maliyeti artırır |
+
+### Sağlayıcı seçmek
+
+Uygulama sağlayıcıyı **bilmez**. `App\Core\Ai\Ai::fromEnv()` ayara bakıp doğru
+sınıfı üretir; denetleyici ve arayüz aynı kalır. Sağlayıcı değiştirmek üç satırdır:
+
+| Sağlayıcı | `.env` | Ücretsiz katman | Anahtar |
+|---|---|---|---|
+| **Google Gemini** *(varsayılan)* | `AI_PROVIDER=gemini`<br>`GEMINI_API_KEY=…`<br>`AI_MODEL=gemini-2.5-flash` | **var** | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| **Groq** | `AI_PROVIDER=groq`<br>`GROQ_API_KEY=…`<br>`AI_MODEL=llama-3.3-70b-versatile` | **var** | [console.groq.com/keys](https://console.groq.com/keys) |
+| **xAI (Grok) · OpenRouter · Ollama** | `AI_PROVIDER=openai-compatible`<br>`AI_API_KEY=…`<br>`AI_BASE_URL=https://api.x.ai/v1` | sağlayıcıya göre | sağlayıcının paneli |
+| **Anthropic Claude** | `AI_PROVIDER=claude`<br>`ANTHROPIC_API_KEY=…`<br>`AI_MODEL=claude-sonnet-5` | yok (ücretli) | [console.anthropic.com](https://console.anthropic.com) |
+
+**Neden varsayılan ücretsiz bir sağlayıcı?** Bu bir öğrenme örneğidir ve önündeki en
+pahalı engel kredi kartıydı: kodu okumak isteyen çoğu kişi çalışır hâlini hiç
+görmeden ayrılıyordu.
+
+**Yeni bir sağlayıcı eklemek** `HttpProvider` sınıfını genişletip dört soruyu
+cevaplamaktır: nereye (`endpoint`), hangi başlıkla (`headers`), hangi gövdeyle
+(`payload`), gelen yanıt ortak biçime nasıl çevrilir (`normalize`). Yeniden deneme,
+geri çekilme ve cURL ayarları zaten ortak katmandadır.
 
 ---
 
@@ -506,7 +551,13 @@ ai-integration-system/
 │
 ├── app/
 │   ├── Core/
-│   │   ├── ClaudeClient.php      ★ cURL isteği · geri çekilme · maliyet hesabı
+│   │   ├── Ai/                   ★ SAĞLAYICI KATMANI
+│   │   │   ├── Ai.php                Fabrika — AI_PROVIDER'a bakar
+│   │   │   ├── Provider.php          Arayüz + ortak yanıt sözleşmesi
+│   │   │   ├── HttpProvider.php      cURL · yeniden deneme · geri çekilme
+│   │   │   ├── GeminiProvider.php    Varsayılan — ücretsiz katman
+│   │   │   ├── OpenAiCompatibleProvider.php  Groq · xAI · OpenRouter · Ollama
+│   │   │   └── ClaudeProvider.php    Anthropic Messages API
 │   │   ├── Auth.php · Session.php · Csrf.php · RateLimiter.php
 │   │   ├── Database.php          PDO (EMULATE_PREPARES = false)
 │   │   ├── Env.php               .env okuyucu + isLocalHost()
@@ -588,11 +639,12 @@ Kural basit: **API anahtarı sunucudan çıkmaz.** Tarayıcı yalnızca kendi su
 <details>
 <summary><b>Maliyeti nasıl düşürürüm?</b></summary>
 
-Üç kaldıraç var, etkileri sırasıyla:
+Dört kaldıraç var, etkileri sırasıyla:
 
-1. **Model.** `claude-haiku-4-5` çıkışta `claude-opus-5`'in beşte biri fiyattadır. Sınıflandırma, özetleme, biçimlendirme gibi işlerde aradaki kalite farkı çoğu zaman fark edilmez.
-2. **Gönderdiğiniz geçmiş.** Giriş jetonu her mesajda birikir. Uzun sohbetlerde eski mesajları özetleyip özeti gönderin.
-3. **Efor seviyesi.** `AI_EFFORT` düşürmek düşünme jetonlarını azaltır.
+1. **Sağlayıcı.** En büyük fark burada: Gemini ve Groq'un ücretsiz katmanları vardır. Bir yan projede fatura hiç başlamayabilir.
+2. **Model.** Aynı ailede bile fark büyüktür: `gemini-2.5-flash-lite` çıkışta `gemini-2.5-flash`'in altıda biri, `claude-haiku-4-5` ise `claude-opus-5`'in beşte biri fiyattadır. Sınıflandırma, özetleme, biçimlendirme gibi işlerde aradaki kalite farkı çoğu zaman fark edilmez.
+3. **Gönderdiğiniz geçmiş.** Giriş jetonu her mesajda birikir. Uzun sohbetlerde eski mesajları özetleyip özeti gönderin.
+4. **Efor seviyesi.** Claude'da `AI_EFFORT` düşürmek düşünme jetonlarını azaltır.
 
 Hangisinin işe yaradığını görmek için paneldeki maliyet sayacına bakın — ölçmeden optimize etmeyin.
 </details>
@@ -612,7 +664,7 @@ Hangisinin işe yaradığını görmek için paneldeki maliyet sayacına bakın 
 
 Bu proje Messages API'sinin **nasıl** çalıştığını göstermek için yazıldı: hangi başlıklar gidiyor, yanıt nasıl ayrışıyor, hangi hata kodu geçici.
 
-`ClaudeClient.php` 473 satırdır ve her adımı yorumlarla açıklar. Ayrıca Composer bağımlılığı olmaması, paylaşımlı hosting'e atıp çalıştırabilmeniz demektir.
+Sağlayıcı sınıfları her adımı yorumlarla açıklar; ortak HTTP ve yeniden deneme katmanı `HttpProvider` içinde bir kez yazılmıştır. Ayrıca Composer bağımlılığı olmaması, paylaşımlı hosting'e atıp çalıştırabilmeniz demektir.
 
 Üretimde SDK kullanmak isterseniz, artık onun ne yaptığını biliyor olacaksınız.
 </details>
@@ -640,7 +692,7 @@ Yaygın kalıp: son N mesajı ham gönderin, daha eskileri tek bir özet mesajı
 ## Canlı Ortama Alırken
 
 - [ ] `.env` içinde `APP_DEBUG=false` (veya satırı tümüyle silin)
-- [ ] `ANTHROPIC_API_KEY` **yalnızca** `.env` içinde; depoda değil
+- [ ] API anahtarı **yalnızca** `.env` içinde; depoda değil
 - [ ] `.env` dosyasının tarayıcıdan erişilemediğini doğrulayın (403 dönmeli)
 - [ ] `AI_MODEL` ve `AI_MAX_TOKENS` bütçenize göre ayarlanmış mı?
 - [ ] Kullanıcı başına günlük istek sınırı düşünün (bu örnekte yoktur)
@@ -655,11 +707,11 @@ Yaygın kalıp: son N mesajı ham gönderin, daha eskileri tek bir özet mesajı
 
 | Belirti | Sebep | Çözüm |
 |---|---|---|
-| "API anahtarı tanımlı değil" | `.env` boş veya okunmuyor | `ANTHROPIC_API_KEY` satırını kontrol edin |
+| "API anahtarı tanımlı değil" | `.env` boş veya okunmuyor | Seçili sağlayıcının anahtar satırını kontrol edin (`GEMINI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`) |
 | `401` geliyor | Anahtar geçersiz veya iptal edilmiş | Konsoldan yeni anahtar üretin |
 | `429` sürekli | Hız sınırı | İstekleri yavaşlatın veya kuyruğa alın |
 | Yanıt kesiliyor | `max_tokens` sınırı | `AI_MAX_TOKENS` değerini yükseltin |
-| Maliyet `0,00` görünüyor | `AI_MODEL` fiyat tablosunda yok | `ClaudeClient::PRICING` içine modeli ekleyin |
+| Maliyet `0,00` görünüyor | Ücretsiz katmandasınız (doğru) ya da `AI_MODEL` fiyat tablosunda yok | Gerekirse sağlayıcının `PRICING` tablosuna modeli ekleyin |
 | Bağlantı zaman aşımı | `curl` eklentisi yok veya giden bağlantı kapalı | `php -m \| grep curl`; sunucu güvenlik duvarını kontrol edin |
 | Türkçe karakterler bozuk | Bağlantı karakter kümesi | `charset=utf8mb4` olduğunu doğrulayın |
 | Tüm adresler 404 | `mod_rewrite` kapalı | Açın veya `APP_PRETTY_URLS=false` yapın |

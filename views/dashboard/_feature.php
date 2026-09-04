@@ -4,15 +4,35 @@
  *  PARÇA: Kontrol panelinde yapay zekâ kurulum durumu
  * ---------------------------------------------------------------------
  *  views/dashboard/index.php bu dosyayı VARSA basar.
+ *
+ *  Bu parça artık HİÇBİR SAĞLAYICI ADI BİLMİYOR. Hepsini Ai::status()
+ *  veriyor; sağlayıcı değiştiğinde burada tek bir satır bile
+ *  değişmiyor. Kurulum uyarısındaki değişken adı ve anahtarın
+ *  alınacağı adres de seçili sağlayıcıya göre kendiliğinden değişir.
  * =====================================================================
  */
 
-use App\Core\ClaudeClient;
+use App\Core\Ai\Ai;
 use App\Core\Env;
 
-$configured = ClaudeClient::isConfigured();
-$model      = Env::get('AI_MODEL', 'claude-opus-5');
+$status = Ai::status();
+
+$configured = (bool) $status['configured'];
+$provider   = (string) $status['provider_label'];
+$model      = (string) $status['model'];
+$console    = (string) $status['console'];
+$freeTier   = (bool) $status['free_tier'];
 $effort     = Env::get('AI_EFFORT', 'medium');
+
+/* Kurulum uyarısında hangi değişkeni yazmaları gerektiğini
+ * söylüyoruz. "API anahtarı ekleyin" demek yetmez; hangi ada,
+ * hangi dosyaya yazacağını da söylemek gerekir. */
+$keyName = match ((string) $status['provider']) {
+    'claude'            => 'ANTHROPIC_API_KEY',
+    'groq'              => 'GROQ_API_KEY',
+    'openai-compatible' => 'AI_API_KEY',
+    default             => 'GEMINI_API_KEY',
+};
 ?>
 <div class="cy-card mt-3">
     <div class="cy-card__head">
@@ -28,7 +48,15 @@ $effort     = Env::get('AI_EFFORT', 'medium');
                 <span>
                     <strong>API anahtarı tanımlı değil.</strong>
                     <code>.env</code> dosyasına şu satırı ekleyin:
-                    <code>ANTHROPIC_API_KEY=sk-ant-...</code>
+                    <code><?= e($keyName) ?>=…</code>
+                    <?php if ($freeTier): ?>
+                        <br>Anahtar <strong>ücretsizdir</strong>;
+                        <code><?= e($console) ?></code> adresinden
+                        kredi kartı vermeden alabilirsiniz.
+                    <?php else: ?>
+                        <br>Anahtarı <code><?= e($console) ?></code>
+                        adresinden alabilirsiniz.
+                    <?php endif; ?>
                 </span>
             </div>
         <?php endif; ?>
@@ -47,17 +75,24 @@ $effort     = Env::get('AI_EFFORT', 'medium');
                 <?php endif; ?>
             </dd>
 
+            <dt>Sağlayıcı</dt>
+            <dd>
+                <?= e($provider) ?>
+                <?php if ($freeTier): ?>
+                    <span class="cy-muted">— ücretsiz katmanı var</span>
+                <?php endif; ?>
+            </dd>
+
             <dt>Model</dt>
             <dd><code><?= e($model) ?></code></dd>
 
-            <dt>Efor</dt>
-            <dd>
-                <code><?= e($effort) ?></code>
-                <span class="cy-muted">— düşünme derinliğini ve maliyeti birlikte belirler</span>
-            </dd>
-
-            <dt>Uç nokta</dt>
-            <dd><code>POST https://api.anthropic.com/v1/messages</code></dd>
+            <?php if ((string) $status['provider'] === 'claude'): ?>
+                <dt>Efor</dt>
+                <dd>
+                    <code><?= e($effort) ?></code>
+                    <span class="cy-muted">— düşünme derinliğini ve maliyeti birlikte belirler</span>
+                </dd>
+            <?php endif; ?>
         </dl>
 
         <p class="cy-muted mb-0" style="font-size:.8125rem">

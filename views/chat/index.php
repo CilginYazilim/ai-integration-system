@@ -22,12 +22,26 @@ use App\Core\View;
     ========================================================== -->
     <div class="cy-setup-note mb-3">
         <?= icon('alert', 'cy-icon cy-icon--sm') ?>
+        <?php
+        /* Uyarı, SEÇİLİ sağlayıcıya göre yazılır. Sabit bir değişken
+         * adı yazmak, Gemini kullanan birine Anthropic anahtarı
+         * istetirdi — kurulumda en can sıkıcı yanlış yönlendirme. */
+        $aiStatus = App\Core\Ai\Ai::status();
+
+        $aiKeyName = match ((string) $aiStatus['provider']) {
+            'claude'            => 'ANTHROPIC_API_KEY',
+            'groq'              => 'GROQ_API_KEY',
+            'openai-compatible' => 'AI_API_KEY',
+            default             => 'GEMINI_API_KEY',
+        };
+        ?>
         <span>
             <strong>API anahtarı tanımlı değil.</strong>
-            <code>.env</code> dosyasına <code>ANTHROPIC_API_KEY=sk-ant-...</code>
+            <code>.env</code> dosyasına <code><?= e($aiKeyName) ?>=…</code>
             satırını ekleyin. Anahtarı
-            <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>
-            adresinden alabilirsiniz.
+            <code><?= e((string) $aiStatus['console']) ?></code>
+            adresinden<?= $aiStatus['free_tier'] ? ' <strong>ücretsiz</strong>' : '' ?>
+            alabilirsiniz.
             <br>
             Anahtar <strong>yalnızca sunucuda</strong> durur; tarayıcıya asla gönderilmez.
         </span>

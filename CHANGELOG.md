@@ -6,6 +6,79 @@ kurallarına uyar.
 
 ---
 
+## [2.0.0] — 2026-09-04
+
+### Değiştirildi — UYUMSUZ (yapılandırma)
+
+- **Varsayılan sağlayıcı Anthropic Claude yerine Google Gemini oldu.**
+
+  **Sorun teknik değildi, pratikti:** örneği denemek için önce kredi kartı
+  girmek gerekiyordu. Bir öğrenme örneğinin önündeki en pahalı engel budur;
+  kodu okumak isteyen çoğu kişi çalışır hâlini hiç görmeden ayrılıyordu.
+
+  Gemini'nin ücretsiz katmanı vardır: `aistudio.google.com/apikey`
+  adresinden Google hesabıyla girip birkaç saniyede anahtar alırsınız,
+  faturalandırma açmanız gerekmez.
+
+  **Göç:** `.env` dosyanızda `AI_PROVIDER=claude` satırı varsa hiçbir şey
+  değişmez — Claude bir seçenek olarak duruyor. Satır yoksa uygulama artık
+  Gemini bekler ve `GEMINI_API_KEY` ister.
+
+### Eklendi
+
+- **Sağlayıcı katmanı (`app/Core/Ai/`).** Uygulama artık hangi sağlayıcıyla
+  konuştuğunu bilmiyor:
+
+  ```php
+  $result = Ai::fromEnv()->send($history, $systemPrompt);
+  ```
+
+  Dört sağlayıcı hazır gelir:
+
+  | Sağlayıcı | Ücretsiz katman |
+  |---|---|
+  | `gemini` — Google Gemini *(varsayılan)* | **var** |
+  | `groq` — Groq | **var** |
+  | `openai-compatible` — xAI (Grok), OpenRouter, Ollama | sağlayıcıya göre |
+  | `claude` — Anthropic | yok |
+
+  Yapı şöyle: `Provider` arayüzü ortak yanıt sözleşmesini tanımlar,
+  `HttpProvider` cURL / yeniden deneme / geri çekilmeyi **bir kez** yazar,
+  her sağlayıcı yalnızca dört soruyu cevaplar (adres, başlıklar, gövde,
+  yanıtın çevirisi). Yeni bir sağlayıcı eklemek bu dört metottur.
+
+- `AI_PROVIDER`, `AI_BASE_URL` ve `AI_THINKING` ayarları.
+
+- **Gemini'ye özgü üç tuzak koda ve yorumlara işlendi:** rol adının
+  `assistant` değil `model` olması, sistem yönergesinin mesaj dizisine
+  değil ayrı `systemInstruction` alanına konması, model adının gövdede
+  değil adreste taşınması. Üçü de sessizce yanlış davranış üretir.
+
+### Düzeltildi
+
+- **Geçersiz Gemini anahtarında yanıltıcı hata mesajı.**
+
+  **ÖLÇÜLEN DAVRANIŞ:** Gemini, hatalı anahtarda 401 değil
+  `400 INVALID_ARGUMENT — API key not valid` döndürüyor. Yalnızca durum
+  koduna bakan bir eşleme kullanıcıya "model adınız yanlış olabilir"
+  diyordu ve saatlerce yanlış yere baktırırdı. Hata çözümleyicisi artık
+  mesajın içine de bakıp doğru yönlendirmeyi yapıyor.
+
+### Güvenlik
+
+- **Gemini anahtarı sorgu dizesinde değil, başlıkta gönderiliyor.**
+  Google'ın örnekleri `?key=…` gösterir ve çalışır — ama adres satırındaki
+  anahtar sunucu erişim günlüklerine, vekil sunucu kayıtlarına ve tarayıcı
+  geçmişine yazılır. `x-goog-api-key` başlığı hiçbirine düşmez.
+
+### Kaldırıldı
+
+- `app/Core/ClaudeClient.php` — içeriği `app/Core/Ai/ClaudeProvider.php`
+  ve ortak `HttpProvider` arasında paylaştırıldı. Davranış aynı, kod
+  artık üç sağlayıcı tarafından paylaşılıyor.
+
+---
+
 ## [1.1.0] — 2026-09-04
 
 Depo adı kısaltıldı, gereksiz kod temizlendi ve kullanıcılar sayfasına canlı

@@ -2,15 +2,16 @@
 
 <img src="assets/images/logo.png" alt="Çılgın Yazılım" width="90">
 
-# AI Integration (Claude API)
+# AI Integration (Gemini · Groq · Claude)
 
-### PHP 8 · PDO · MySQL · Claude Messages API · Token and Cost Tracking · Thinking Summaries · Çılgın Yazılım Design Pattern
+### PHP 8 · PDO · MySQL · Runs on a Free API Key · Token and Cost Tracking · Swappable Provider · Çılgın Yazılım Design Pattern
 
 **The key stays on the server, every response's cost is calculated, and the conversation history lives in the database.**
 
 [![PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-5.7%2B-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://mysql.com)
-[![Claude](https://img.shields.io/badge/Claude-Messages_API-d97757?style=flat-square&logo=anthropic&logoColor=white)](https://docs.anthropic.com)
+[![Gemini](https://img.shields.io/badge/Gemini-free_tier-1a73e8?style=flat-square&logo=googlegemini&logoColor=white)](https://aistudio.google.com/apikey)
+[![Provider](https://img.shields.io/badge/Provider-swappable-16a34a?style=flat-square)](#choosing-a-provider)
 [![Composer](https://img.shields.io/badge/Composer-not_required-16a34a?style=flat-square)](#installation)
 [![License](https://img.shields.io/badge/License-MIT-16a34a?style=flat-square)](LICENSE)
 
@@ -94,7 +95,9 @@ This project builds an integration layer that handles all four. The key lives in
 
 The model's "thinking" summary is stored too and can be expanded in the UI — seeing how an answer was constructed is the most practical way to judge it.
 
-The `ClaudeClient` class uses no SDK; the request is made with `cURL` and the response parsed by hand.
+The provider classes use no SDK; the request is made with `cURL` and the response parsed by hand.
+
+**And most importantly: trying it costs nothing.** The default provider is Google Gemini, which has a free tier — grab a key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) in seconds, no credit card.
 
 **Who is it for?**
 
@@ -121,6 +124,7 @@ This project is one of the documented, production-ready examples published in th
 - [Security: What Did We Close, and How?](#security-what-did-we-close-and-how)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Choosing a provider](#choosing-a-provider)
 - [File Structure](#file-structure)
 - [Database Schema](#database-schema)
 - [FAQ](#faq)
@@ -175,7 +179,7 @@ At 390px the bubbles widen, the counters stack and bottom navigation takes over.
 ## The journey of a request
 
 ```
- BROWSER                           SERVER (PHP)                    ANTHROPIC API
+ BROWSER                           SERVER (PHP)                    PROVIDER API
  ───────                           ────────────                    ─────────────
  The user types a message
     │  POST /api/chat/send
@@ -183,7 +187,7 @@ At 390px the bubbles widen, the counters stack and bottom navigation takes over.
     ▼
                           a "user" row in ai_messages
                                    │
-                                   │  ClaudeClient::send()
+                                   │  Ai::fromEnv()->send()
                                    │
                                    │  1) Collect the ENTIRE conversation
                                    │     (the model is stateless)
@@ -232,7 +236,7 @@ A surprising share of examples on the internet put the key in JavaScript and cal
 In this project the request is always made **from the server**:
 
 ```
-Browser → (your own server) → Anthropic API
+Browser → (your own server) → Provider API
 ```
 
 The key lives in `.env`, is listed in `.gitignore`, and never leaves PHP. The browser only talks to your own server — through a CSRF-protected endpoint that requires a session.
@@ -364,7 +368,17 @@ Had the application code said "delete the messages first, then the conversation"
 
 ## How is the cost calculated?
 
-Prices are per million tokens and live in the `ClaudeClient::PRICING` table:
+Prices are per million tokens and live in each provider's own `PRICING` table. **On the free tier your real cost is zero**; the figure is still shown, because the question that matters is not "what did I pay today?" but "what would I pay if this shipped?"
+
+`GeminiProvider::PRICING` — paid tier:
+
+| Model | Input | Output |
+|---|---|---|
+| `gemini-2.5-flash-lite` | $0.10 | $0.40 |
+| `gemini-2.5-flash` | $0.30 | $2.50 |
+| `gemini-3.8-flash` | $0.75 | $3.75 |
+
+`ClaudeProvider::PRICING`:
 
 | Model | Input (1M tokens) | Output (1M tokens) |
 |---|---|---|
@@ -402,7 +416,7 @@ An unknown model name returns `0.0` — better to show nothing than a wrong figu
 
 ## Error handling
 
-`ClaudeClient::send()` always returns an **intelligible** result; a raw exception never leaks into the UI.
+The provider's `send()` always returns an **intelligible** result; a raw exception never leaks into the UI.
 
 | Situation | What the user sees |
 |---|---|
@@ -444,7 +458,7 @@ An unknown model name returns `0.0` — better to show nothing than a wrong figu
 | PHP | 8.0 or newer · the **`curl` extension is required** |
 | MySQL / MariaDB | 5.7+ / 10.3+ |
 | Web server | Apache (`mod_rewrite`) or Nginx |
-| Anthropic API key | [console.anthropic.com](https://console.anthropic.com) |
+| An API key | **Free:** [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (Gemini) or [console.groq.com/keys](https://console.groq.com/keys) (Groq) |
 
 ### Steps
 
@@ -456,11 +470,16 @@ mysql -u root -p < database.sql
 cp .env.example .env        # Windows: copy .env.example .env
 ```
 
-Add your key to `.env`:
+Add your **free** key to `.env`:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...
+AI_PROVIDER=gemini
+GEMINI_API_KEY=...
 ```
+
+> Get the key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey):
+> sign in with a Google account, **Create API key**, copy. No credit card, no
+> billing account required.
 
 Open `http://localhost/ai-integration-system/` · Log in with `admin@cilginyazilim.com` / `Admin1234`
 
@@ -481,18 +500,43 @@ DB_NAME=cy_ai
 DB_USER=root
 DB_PASS=
 
-# --- ANTHROPIC (CLAUDE) API ---
-ANTHROPIC_API_KEY=
-AI_MODEL=claude-opus-5
-AI_MAX_TOKENS=16000
-AI_EFFORT=medium
+# --- AI PROVIDER ---
+AI_PROVIDER=gemini
+GEMINI_API_KEY=
+AI_MODEL=gemini-2.5-flash
+AI_MAX_TOKENS=4096
 ```
 
 | Setting | What it does |
 |---|---|
-| `AI_MODEL` | The model to use. The cost difference is large: `claude-haiku-4-5` costs a fifth of `claude-opus-5` on output |
+| `AI_PROVIDER` | `gemini` · `groq` · `openai-compatible` · `claude`. Default `gemini` |
+| `AI_MODEL` | The model to use. Leave empty to take the provider's default |
+| `AI_BASE_URL` | Only for `openai-compatible`: which service to talk to |
+| `AI_THINKING` | Ask Gemini for a thinking summary (off by default) |
 | `AI_MAX_TOKENS` | The maximum length of a response. **Don't keep it low**: an answer that hits the limit is cut mid-sentence and you have to ask again |
-| `AI_EFFORT` | Thinking depth. Raising it improves answers but increases both latency and cost |
+| `AI_EFFORT` | Claude's thinking depth. Raising it improves answers but increases both latency and cost |
+
+### Choosing a provider
+
+The application does **not** know which provider it talks to. `App\Core\Ai\Ai::fromEnv()`
+reads the setting and builds the right class; the controller and the UI stay the same.
+Switching providers is three lines:
+
+| Provider | `.env` | Free tier | Key |
+|---|---|---|---|
+| **Google Gemini** *(default)* | `AI_PROVIDER=gemini`<br>`GEMINI_API_KEY=…`<br>`AI_MODEL=gemini-2.5-flash` | **yes** | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| **Groq** | `AI_PROVIDER=groq`<br>`GROQ_API_KEY=…`<br>`AI_MODEL=llama-3.3-70b-versatile` | **yes** | [console.groq.com/keys](https://console.groq.com/keys) |
+| **xAI (Grok) · OpenRouter · Ollama** | `AI_PROVIDER=openai-compatible`<br>`AI_API_KEY=…`<br>`AI_BASE_URL=https://api.x.ai/v1` | depends | provider's console |
+| **Anthropic Claude** | `AI_PROVIDER=claude`<br>`ANTHROPIC_API_KEY=…`<br>`AI_MODEL=claude-sonnet-5` | no (paid) | [console.anthropic.com](https://console.anthropic.com) |
+
+**Why default to a free provider?** This is a learning example, and its most expensive
+barrier was a credit card: most people who wanted to read the code left without ever
+seeing it run.
+
+**Adding a provider** means extending `HttpProvider` and answering four questions:
+where (`endpoint`), with which headers (`headers`), with which body (`payload`), and how
+the response maps onto the shared shape (`normalize`). Retries, backoff and cURL settings
+already live in the shared layer.
 
 ---
 
@@ -507,7 +551,13 @@ ai-integration-system/
 │
 ├── app/
 │   ├── Core/
-│   │   ├── ClaudeClient.php      ★ cURL request · backoff · cost calculation
+│   │   ├── Ai/                   ★ PROVIDER LAYER
+│   │   │   ├── Ai.php                Factory — reads AI_PROVIDER
+│   │   │   ├── Provider.php          Interface + shared response contract
+│   │   │   ├── HttpProvider.php      cURL · retries · backoff
+│   │   │   ├── GeminiProvider.php    Default — free tier
+│   │   │   ├── OpenAiCompatibleProvider.php  Groq · xAI · OpenRouter · Ollama
+│   │   │   └── ClaudeProvider.php    Anthropic Messages API
 │   │   ├── Auth.php · Session.php · Csrf.php · RateLimiter.php
 │   │   ├── Database.php          PDO (EMULATE_PREPARES = false)
 │   │   ├── Env.php               .env reader + isLocalHost()
@@ -591,7 +641,8 @@ The rule is simple: **the API key never leaves the server.** The browser only ta
 
 Three levers, in order of impact:
 
-1. **The model.** `claude-haiku-4-5` costs a fifth of `claude-opus-5` on output. For classification, summarisation or formatting, the quality difference is often unnoticeable.
+1. **The provider.** This is the biggest lever: Gemini and Groq have free tiers. On a side project the bill may never start.
+2. **The model.** Even within one family the gap is large: `gemini-2.5-flash-lite` costs a sixth of `gemini-2.5-flash` on output, and `claude-haiku-4-5` a fifth of `claude-opus-5`. For classification, summarisation or formatting, the quality difference is often unnoticeable.
 2. **The history you send.** Input tokens accumulate with every message. In long conversations, summarise older messages and send the summary.
 3. **The effort level.** Lowering `AI_EFFORT` reduces thinking tokens.
 
@@ -613,7 +664,7 @@ Very long answers require streaming; this example uses non-streaming requests.
 
 This project was written to show **how** the Messages API works: which headers go out, how the response is parsed, which error codes are transient.
 
-`ClaudeClient.php` is 473 lines and comments every step. Having no Composer dependency also means you can drop it on shared hosting and run it.
+The provider classes comment every step, and the shared HTTP and retry layer is written once in `HttpProvider`. Having no Composer dependency also means you can drop it on shared hosting and run it.
 
 If you want to use the SDK in production, you'll at least know what it is doing.
 </details>
@@ -641,7 +692,7 @@ A common pattern: send the last N messages verbatim and collapse older ones into
 ## Going to Production
 
 - [ ] Set `APP_DEBUG=false` in `.env` (or delete the line)
-- [ ] `ANTHROPIC_API_KEY` lives **only** in `.env`, never in the repository
+- [ ] The API key lives **only** in `.env`, never in the repository
 - [ ] Verify `.env` is not reachable from the browser (should return 403)
 - [ ] Are `AI_MODEL` and `AI_MAX_TOKENS` tuned to your budget?
 - [ ] Consider a per-user daily request limit (there is none in this example)
@@ -656,11 +707,11 @@ A common pattern: send the last N messages verbatim and collapse older ones into
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| "The API key is not configured" | `.env` is empty or unreadable | Check the `ANTHROPIC_API_KEY` line |
+| "The API key is not configured" | `.env` is empty or unreadable | Check the key line for your selected provider (`GEMINI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`) |
 | `401` | The key is invalid or revoked | Generate a new key in the console |
 | Constant `429` | Rate limit | Slow your requests down or queue them |
 | Answers get truncated | The `max_tokens` limit | Raise `AI_MAX_TOKENS` |
-| Cost shows as `0.00` | `AI_MODEL` isn't in the price table | Add the model to `ClaudeClient::PRICING` |
+| Cost shows as `0.00` | You are on the free tier (correct), or `AI_MODEL` isn't in the price table | Add the model to the provider's `PRICING` table if needed |
 | Connection timeout | The `curl` extension is missing, or outbound traffic is blocked | `php -m \| grep curl`; check the server firewall |
 | Broken Turkish characters | Connection charset | Verify `charset=utf8mb4` |
 | Every URL returns 404 | `mod_rewrite` is off | Enable it, or set `APP_PRETTY_URLS=false` |

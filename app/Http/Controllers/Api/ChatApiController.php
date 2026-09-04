@@ -6,7 +6,7 @@
  *  AKIŞ
  *      1. Kullanıcı mesajını doğrula ve KAYDET
  *      2. Sohbet geçmişinden bağlam penceresini çıkar
- *      3. Anthropic API'ye gönder (yeniden denemeler ClaudeClient'ta)
+ *      3. Seçili sağlayıcıya gönder (yeniden denemeler HttpProvider'da)
  *      4. Yanıtı, jeton kullanımını ve maliyeti KAYDET
  *      5. Tarayıcıya döndür
  *
@@ -23,7 +23,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Core\Auth;
-use App\Core\ClaudeClient;
+use App\Core\Ai\Ai;
 use App\Core\Env;
 use App\Core\Request;
 use App\Core\Response;
@@ -101,11 +101,11 @@ final class ChatApiController extends Controller
 
         /* --- 4) Modele gönder ---------------------------------------- */
         try {
-            $client = ClaudeClient::fromEnv();
+            $client = Ai::fromEnv();
             $result = $client->send($history, self::SYSTEM_PROMPT);
         } catch (RuntimeException $e) {
             /* Hata mesajını kullanıcıya OLDUĞU GİBİ gösteriyoruz:
-             * ClaudeClient onu zaten "ne yapmalısınız" diline
+             * Sağlayıcı onu zaten "ne yapmalısınız" diline
              * çevirmiş durumda. API anahtarı gibi hassas bir değer
              * bu metne hiçbir zaman girmez. */
             Response::error($e->getMessage(), 502);
@@ -168,11 +168,12 @@ final class ChatApiController extends Controller
      */
     public function status(Request $request): void
     {
-        Response::json([
-            'success'    => true,
-            'configured' => ClaudeClient::isConfigured(),
-            'model'      => Env::get('AI_MODEL', 'claude-opus-5'),
-            'effort'     => Env::get('AI_EFFORT', 'medium'),
+        /* Ai::status() sağlayıcı adını, modeli, ücretsiz katman
+         * bilgisini ve anahtarın tanımlı olup olmadığını verir.
+         * ANAHTARIN KENDİSİ ORADA DA YOKTUR. */
+        Response::json(Ai::status() + [
+            'success' => true,
+            'effort'  => Env::get('AI_EFFORT', 'medium'),
         ]);
     }
 }

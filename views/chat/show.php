@@ -88,7 +88,7 @@
         <textarea class="form-control" id="chat_input" rows="2" maxlength="8000"
                   placeholder="<?= $configured
                       ? 'Mesajınızı yazın… (Ctrl+Enter ile gönderin)'
-                      : 'Önce .env dosyasına ANTHROPIC_API_KEY ekleyin' ?>"
+                      : 'Önce .env dosyasına API anahtarınızı ekleyin' ?>"
                   <?= $configured ? '' : 'disabled' ?>></textarea>
 
         <button type="submit" class="btn cy-btn cy-btn--primary" id="chat_send"

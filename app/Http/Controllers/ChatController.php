@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Core\Auth;
-use App\Core\ClaudeClient;
+use App\Core\Ai\Ai;
 use App\Core\Env;
 use App\Core\Flash;
 use App\Core\Paginator;
@@ -42,12 +42,13 @@ final class ChatController extends Controller
 
         $this->view('chat/index', [
             'title'      => 'Sohbetler',
-            'subtitle'   => 'Claude ile yapılan konuşmalar',
+            'subtitle'   => Ai::label() . ' ile yapılan konuşmalar',
             'rows'       => $rows,
             'paginator'  => $paginator,
             'stats'      => $repository->stats($userId),
-            'configured' => ClaudeClient::isConfigured(),
-            'model'      => Env::get('AI_MODEL', 'claude-opus-5'),
+            'configured' => Ai::isConfigured(),
+            'model'      => Ai::model(),
+            'provider'   => Ai::label(),
             'effort'     => Env::get('AI_EFFORT', 'medium'),
 
             // Silme onayı için; sohbet ekranıyla aynı dosya.
@@ -77,10 +78,10 @@ final class ChatController extends Controller
 
         $this->view('chat/show', [
             'title'        => $conversation['title'],
-            'subtitle'     => 'Claude ile sohbet',
+            'subtitle'     => Ai::label() . ' ile sohbet',
             'conversation' => $conversation,
             'messages'     => $repository->messages($id),
-            'configured'   => ClaudeClient::isConfigured(),
+            'configured'   => Ai::isConfigured(),
             'scripts'      => ['chat.js'],
         ]);
     }
